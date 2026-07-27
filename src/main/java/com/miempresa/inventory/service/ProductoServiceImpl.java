@@ -5,47 +5,58 @@ import com.miempresa.inventory.dto.ProductoResponse;
 import com.miempresa.inventory.entity.Producto;
 import com.miempresa.inventory.mapper.ProductoMapper;
 import com.miempresa.inventory.repository.ProductoRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class ProductoServiceImpl implements ProductoService{
+@RequiredArgsConstructor
+public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository repository;
     private final ProductoMapper mapper;
 
-    public ProductoServiceImpl(ProductoRepository repository, ProductoMapper mapper) {
-        this.repository = repository;
-        this.mapper = mapper;
-    }
-
     @Override
     public List<ProductoResponse> findAll() {
 
-        return List.of();
+        return repository.findAll()
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
     }
 
     @Override
     public ProductoResponse findById(Long id) {
 
-        return null;
+        return repository.findById(id)
+                .map(mapper::toResponse)
+                .orElseThrow();
     }
 
     @Override
     public ProductoResponse create(ProductoRequest request) {
 
-        return null;
+        Producto savedProducto = repository.save(mapper.toEntity(request));
+
+        return mapper.toResponse(savedProducto);
     }
 
     @Override
     public ProductoResponse update(Long id, ProductoRequest request) {
 
-        return null;
+        Producto foundProduct = repository.findById(id)
+                .orElseThrow();
+
+        foundProduct.setNombre(request.nombre());
+        foundProduct.setPrecio(request.precio());
+
+        return mapper.toResponse(repository.save(foundProduct));
     }
 
     @Override
     public void delete(Long id) {
 
+        repository.deleteById(id);
     }
 }
